@@ -1,1 +1,58 @@
-
+AEB — Agentic Escalation Benchmark: Measuring When AI Agents Know They
+Shouldn't Act Alone
+Ganesh Kothule  |  Mercor Research Fellowship Proposal
+1. Motivation / Problem
+Agent evaluation today overwhelmingly measures task completion: did the agent finish the workflow, book the flight, resolve the ticket. This is
+the wrong axis to optimize alone. Deployed agents in professional domains — finance, operations, customer recovery — regularly face
+situations where the correct behavior is not to act independently: information is missing, the action is irreversible, or the case sits outside the
+agent's authorized scope. An agent that always attempts the task can score well on completion benchmarks while being dangerously
+over-autonomous in production. Conversely, an overly cautious agent that escalates everything is unusable.
+2. Research Question
+In ambiguous, partially-specified operational tasks, how reliably do LLM agents choose the correct response mode — act, ask a clarifying
+question, escalate to a human, or stop — and under what conditions do they systematically over-act or under-act?
+3. Proposed Benchmark / Methodology
+Agent benchmarks, including long-horizon agentic suites like APEX-Agents, primarily grade whether the task was completed, and
+safety-focused agent evaluations typically test refusal of clearly harmful requests. AEB targets the middle case that both miss: a request that is
+plausible and not overtly harmful, but where the agent still lacks sufficient information or authority to act on it alone. This case fails silently — a
+model that quietly exceeds its authority on a reasonable-looking request is invisible to a refusal benchmark and rewarded by a completion
+benchmark.
+I propose building AEB, a benchmark of 40–60 hand-designed scenarios across four categories: missing-information ambiguity,
+policy-boundary edge cases (an amount at or near an approval threshold), conflicting-signal situations (available data points support two
+different actions), and irreversible-action scenarios (the action, once taken, cannot be undone or cheaply corrected, e.g. a permanent account
+closure vs. a reversible temporary hold). Each scenario includes a short operational context, an explicit policy constraint, and mocked tools
+implemented as scripted function stubs — no live systems, so the benchmark isolates decision judgment from tool-execution reliability. Each
+task carries a gold-label decision mode, with some tasks legitimately supporting more than one acceptable mode.
+Given the initial dataset is single-author, I will run a pilot labeling pass on a 15-task subset with a second rater before finalizing gold labels, and
+revise the rubric or task wording where agreement is low before writing the remaining tasks.
+4. Evaluation Framework
+Each model output is scored on two axes: a 4-way decision-mode classification against the gold label, and a 1–5 justification-quality score for
+the stated reasoning. I will hand-grade a sample of outputs myself and separately score the same sample with an LLM-as-judge, then report
+agreement using percent agreement and Cohen's kappa. This tests where automated grading diverges from human judgment on agentic
+decisions specifically, a less-studied case than single-turn response grading. From the graded outputs I will also build a small error taxonomy
+describing recurring failure patterns.
+Given the sample size, I will treat cross-model differences below roughly 10 percentage points as inconclusive rather than a finding, and report
+confidence intervals via bootstrap resampling rather than point estimates alone.
+5. Experiments
+Three planned experiments: cross-model comparison across 3–5 publicly accessible models, reporting decision accuracy, over-autonomy
+rate, and under-autonomy rate per task category; a policy-presence ablation, comparing behavior with and without the explicit policy constraint
+in the prompt, to test whether models respect stated rules more than inferred risk; and an autonomy-framing ablation, comparing
+fully-autonomous framing against neutral framing. Two baselines, always-act and always-escalate, contextualize how much real headroom
+exists above trivial strategies. Token cost per task will be logged to report accuracy-per-dollar as a secondary result.
+6. Expected Contribution
+The core output is a reusable dataset and scoring methodology for measuring escalation judgment as its own axis, independent of task
+completion, along with an open scoring script and a documented failure taxonomy. I expect directional gaps between models on
+ambiguity-driven categories, and lower human-LLM judge agreement on justification quality than on decision-mode labeling, since a label is
+either right or wrong against the gold set while judging the quality of stated reasoning is inherently more subjective, even between two careful
+human graders. At 40–60 tasks and largely single-annotator labels, this supports methodology and directional findings, not definitive model
+rankings — a limitation the pilot rating pass and mentor input are meant to partly address as the task set grows. With extension, this could
+grow into a public leaderboard or a task category within an existing agentic benchmark suite.
+7. Why Mercor / Why Me
+This proposal comes directly from two concrete experiences. At Ethara AI, my work was data annotation, response labeling, response ranking,
+error identification, and structured human feedback for LLM post-training — the exact skill set this benchmark's rubric design and
+human-vs-judge comparison require. Separately, building REVIVE, an AI-assisted revenue recovery workflow, required me to design explicit
+escalation conditions rather than leave action fully to model judgment — for example, routing any recovery action above a configured amount
+threshold, or any case where automated retries fail without a diagnosable cause, to human review before further action, with the decision
+logged to an audit trail. Designing that layer made clear how little existing evaluation tells you about whether a model actually respects
+constraints like these when it counts. Mercor is the right environment because APEX treats evaluation as a first-class research discipline with
+direct exposure to real professional-domain agentic tasks — exactly where escalation judgment matters most, and where I can get rigorous
+feedback on rubric design and grading methodology from a team that does this at scale.
