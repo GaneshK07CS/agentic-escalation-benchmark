@@ -11,6 +11,7 @@ behavior is still not to act independently.
 Written for the Mercor Research Fellowship. Status: proposal stage — pilot inter-rater labeling pass and 
 cross-model evaluation planned next.
 Contents
+
 • AEB_Proposal.pdf  — full proposal: motivation, benchmark design (40–60 scenarios across 4 
 categories), evaluation framework, and experiment plan 
 Author
